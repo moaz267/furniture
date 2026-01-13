@@ -97,7 +97,7 @@ const Checkout = () => {
     setStep('payment');
   };
 
-  const vodafoneNumber = '+201555731200';
+  const vodafoneNumber = '+201060044708';
   const instapayHandle = '@capital-furniture';
 
   const copyToClipboard = (text: string) => {

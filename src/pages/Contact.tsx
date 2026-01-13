@@ -37,7 +37,7 @@ const Contact = () => {
       titleEn: 'Phone',
       titleAr: 'الهاتف',
       value: '+201060044708',
-      href: 'tel:+201555731200',
+      href: 'tel:+201060044708',
     },
     {
       icon: Mail,

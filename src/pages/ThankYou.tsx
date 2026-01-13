@@ -11,7 +11,7 @@ const ThankYou = () => {
   const navigate = useNavigate();
   const orderNumber = location.state?.orderNumber || 'N/A';
 
-  const whatsappNumber = '+201555731200';
+  const whatsappNumber = '+201060044708';
   const whatsappMessage = language === 'ar'
     ? `مرحباً، لقد قمت بتحويل العربون لطلب رقم ${orderNumber}. أرفق لكم إيصال التحويل.`
     : `Hello, I have transferred the deposit for order ${orderNumber}. Attached is the transfer receipt.`;

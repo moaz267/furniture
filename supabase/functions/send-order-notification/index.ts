@@ -49,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             <p style="color: #333;">Thank you for choosing capital Furniture!</p>
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
-              Need help? Contact us on WhatsApp: +201555731200
+              Need help? Contact us on WhatsApp: +201060044708
             </p>
           </div>
         </div>
@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
               Contact on WhatsApp
             </a>
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
-              WhatsApp: +201555731200
+              WhatsApp: +201060044708
             </p>
           </div>
         </div>
