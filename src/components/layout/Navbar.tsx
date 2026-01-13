@@ -31,7 +31,7 @@ const Navbar = () => {
           {/* Logo Section - تكبير حجم اسم البراند */}
           <Link to="/" className="flex items-center gap-3">
             <div className="w-12 h-12 gradient-gold rounded-full flex items-center justify-center overflow-hidden">
-              <img src="/src/assets/profile.jpeg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/src/assets/profilee.jpeg" alt src="https://static.vecteezy.com/system/resources/previews/017/209/058/non_2x/initial-c-letter-logo-with-modern-business-typography-template-creative-letter-c-logo-design-vector.jpg" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="text-gold font-serif text-2xl font-bold tracking-tight leading-none">
