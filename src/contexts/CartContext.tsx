@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 export interface Product {
   id: string;
@@ -37,8 +37,21 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  // التعديل 1: قراءة البيانات من المتصفح عند البداية
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window !== 'undefined') { // للتأكد من أننا في المتصفح وليس السيرفر
+      const savedCart = localStorage.getItem('user_cart');
+      return savedCart ? JSON.parse(savedCart) : [];
+    }
+    return [];
+  });
+  
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // التعديل 2: حفظ البيانات في المتصفح كل ما السلة تتغير
+  useEffect(() => {
+    localStorage.setItem('user_cart', JSON.stringify(items));
+  }, [items]);
 
   const addToCart = (product: Product) => {
     setItems(prev => {
