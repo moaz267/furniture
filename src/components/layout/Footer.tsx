@@ -35,12 +35,21 @@ const Footer = () => {
                 { href: '/shop', label: t('shop') },
                 { href: '/about', label: t('about') },
                 { href: '/contact', label: t('contact') },
+                // إضافة زر دخول الإدارة هنا
+                { 
+                  href: '/admin-login', 
+                  label: language === 'en' ? 'Admin Login' : 'دخول الإدارة',
+                  isAdmin: true 
+                },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
                     to={link.href}
-                    className="text-sm hover:text-gold transition-colors inline-block"
+                    className={`text-sm hover:text-gold transition-colors inline-flex items-center gap-2 ${
+                      link.isAdmin ? 'text-gold/80' : ''
+                    }`}
                   >
+                    {link.isAdmin && <Shield className="w-3.5 h-3.5" />}
                     {link.label}
                   </Link>
                 </li>
@@ -92,14 +101,14 @@ const Footer = () => {
             {/* Google Maps */}
             <div className="rounded-lg overflow-hidden h-32">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3418.5!2d31.8!3d31.4!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDI0JzAwLjAiTiAzMcKwNDgnMDAuMCJF!5e0!3m2!1sen!2seg!4v1600000000000!5m2!1sen!2seg"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3412.3!2d31.8!3d31.4!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDI0JzAwLjAiTiAzMcKwNDgnMDAuMCJF!5e0!3m2!1sen!2seg!4v1630000000000!5m2!1sen!2seg"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="capital Furniture Location"
+                title="Capital Furniture Location"
               />
             </div>
           </div>
@@ -117,13 +126,6 @@ const Footer = () => {
               </Link>
               <Link to="/terms" className="text-xs text-primary-foreground/40 hover:text-gold transition-colors">
                 {language === 'en' ? 'Terms of Service' : 'شروط الخدمة'}
-              </Link>
-              <Link 
-                to="/admin-login" 
-                className="flex items-center gap-1.5 text-xs text-primary-foreground/40 hover:text-gold transition-colors"
-              >
-                <Shield className="w-3 h-3" />
-                {language === 'en' ? 'Admin' : 'الإدارة'}
               </Link>
             </div>
           </div>
