@@ -195,3 +195,4 @@ CREATE POLICY "Authenticated users can delete product images"
 ON storage.objects FOR DELETE 
 TO authenticated
 USING (bucket_id = 'product-images');
+

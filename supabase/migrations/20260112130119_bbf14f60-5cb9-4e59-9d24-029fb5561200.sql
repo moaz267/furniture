@@ -36,3 +36,4 @@ CREATE POLICY "Admins can delete contact messages"
 ON public.contact_messages
 FOR DELETE
 USING (public.has_role(auth.uid(), 'admin'));
+

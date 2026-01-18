@@ -84,14 +84,16 @@ const AdminOrders = () => {
       }).eq('id', selectedOrder.id);
 
       if (error) throw error;
-      toast.success("تم التحديث");
+      toast.success("تم التحديث بنجاح");
       setIsDetailsOpen(false);
       fetchOrders();
-    } catch (err) { toast.error("خطأ في التحديث"); }
-    finally { setIsProcessing(false); }
+    } catch (err) { 
+      toast.error("خطأ في التحديث"); 
+    } finally { 
+      setIsProcessing(false); 
+    }
   };
 
-  // --- دالة الحذف الرسمية للأونر ---
   const deleteOrder = async (id: string) => {
     if (!window.confirm("هل أنت متأكد من الحذف النهائي من السيرفر؟ (لصاحب الصلاحية فقط)")) return;
     
@@ -99,14 +101,8 @@ const AdminOrders = () => {
     const toastId = toast.loading("جاري محاولة الحذف...");
 
     try {
-      // حذف التايم لاين المرتبط بالطلب أولاً لتجنب تعارض البيانات
       await supabase.from('order_timeline').delete().eq('order_id', id);
-      
-      // حذف الطلب الفعلي
-      const { error } = await supabase
-        .from('orders')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('orders').delete().eq('id', id);
 
       if (error) throw error;
 
@@ -114,7 +110,7 @@ const AdminOrders = () => {
       toast.success("تم الحذف بنجاح من قاعدة البيانات", { id: toastId });
     } catch (err: any) {
       console.error(err);
-      toast.error("عفواً، لا تملك صلاحية الحذف من السيرفر. يرجى مراجعة إعدادات RLS في سوبابيز.", { id: toastId });
+      toast.error("عفواً، لا تملك صلاحية الحذف من السيرفر.", { id: toastId });
     } finally {
       setIsProcessing(false);
     }
@@ -185,63 +181,85 @@ const AdminOrders = () => {
       </div>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-4xl rounded-[2rem] p-0" dir="rtl">
+        <DialogContent className="max-w-4xl rounded-[2rem] p-0 overflow-hidden max-h-[90vh] flex flex-col" dir="rtl">
           {selectedOrder && (
-            <div className="p-8 space-y-6 text-right">
-              <div className="flex justify-between items-center border-b pb-4">
+            <>
+              {/* Header - Fixed */}
+              <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10">
                 <h2 className="text-2xl font-black text-gray-800">تفاصيل الطلب</h2>
-                <Button variant="ghost" onClick={() => setIsDetailsOpen(false)}><X className="w-6 h-6" /></Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                  <p className="text-gold font-bold mb-2">معلومات العميل:</p>
-                  <p className="text-xl font-bold">{selectedOrder.customer_name}</p>
-                  <p className="text-gray-600">{selectedOrder.customer_phone}</p>
-                </div>
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                  <p className="text-gold font-bold mb-2">العنوان:</p>
-                  <p className="text-xl font-bold">{selectedOrder.city}</p>
-                  <p className="text-gray-600">{selectedOrder.shipping_address}</p>
-                </div>
+                <Button variant="ghost" className="rounded-full" onClick={() => setIsDetailsOpen(false)}>
+                  <X className="w-6 h-6" />
+                </Button>
               </div>
 
-              <div className="space-y-3">
-                <p className="font-bold">صورة إثبات الدفع:</p>
-                {screenshotUrl ? (
-                  <img src={screenshotUrl} className="w-full h-auto max-h-[450px] object-contain rounded-2xl border shadow-sm" />
-                ) : <div className="p-10 bg-gray-50 rounded-2xl border-2 border-dashed text-center text-gray-400">لا يوجد إثبات مرفق</div>}
-              </div>
-
-              {selectedOrder.order_status === 'awaiting_payment' && (
-                <div className="bg-gold/5 border-2 border-gold/20 p-6 rounded-2xl space-y-4">
-                  <div className="flex gap-4">
-                    <Button className="flex-1 h-14 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl" onClick={() => updateStatus('confirmed')}>تأكيد الدفع</Button>
-                    <Button variant="destructive" className="flex-1 h-14 font-bold rounded-xl" onClick={() => updateStatus('payment_failed', rejectReason)} disabled={!rejectReason.trim()}>رفض الدفع</Button>
+              {/* Scrollable Content */}
+              <div className="p-8 space-y-6 text-right overflow-y-auto flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                    <p className="text-gold font-bold mb-2">معلومات العميل:</p>
+                    <p className="text-xl font-bold">{selectedOrder.customer_name}</p>
+                    <p className="text-gray-600">{selectedOrder.customer_phone}</p>
                   </div>
-                  <Textarea placeholder="اكتب ملاحظة للعميل في حالة الرفض..." value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className="rounded-xl" />
+                  <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                    <p className="text-gold font-bold mb-2">العنوان:</p>
+                    <p className="text-xl font-bold">{selectedOrder.city}</p>
+                    <p className="text-gray-600">{selectedOrder.shipping_address}</p>
+                  </div>
                 </div>
-              )}
 
-              <div className="border rounded-2xl overflow-hidden">
-                 {selectedOrder.items?.map((item: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center p-4 border-b last:border-0 bg-white">
-                      <p className="font-bold text-gold">{item.price * item.quantity} EGP</p>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-bold">{item.name}</p>
-                          <p className="text-sm text-gray-500">الكمية: {item.quantity}</p>
-                        </div>
-                        <img src={item.image} className="w-16 h-16 rounded-xl object-cover" />
-                      </div>
+                <div className="space-y-3">
+                  <p className="font-bold text-gray-700">صورة إثبات الدفع:</p>
+                  {screenshotUrl ? (
+                    <div className="relative group">
+                      <img src={screenshotUrl} className="w-full h-auto max-h-[500px] object-contain rounded-2xl border shadow-sm" alt="Payment Proof" />
+                      <a href={screenshotUrl} target="_blank" rel="noreferrer" className="absolute top-4 left-4 bg-white/90 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ExternalLink className="w-5 h-5 text-gold" />
+                      </a>
                     </div>
-                 ))}
-                 <div className="p-5 bg-gray-50 flex justify-between items-center font-black text-xl">
-                    <span className="text-gold">{selectedOrder.total} EGP</span>
-                    <span>الإجمالي</span>
-                 </div>
+                  ) : (
+                    <div className="p-10 bg-gray-50 rounded-2xl border-2 border-dashed text-center text-gray-400">لا يوجد إثبات مرفق</div>
+                  )}
+                </div>
+
+                {selectedOrder.order_status === 'awaiting_payment' && (
+                  <div className="bg-gold/5 border-2 border-gold/20 p-6 rounded-2xl space-y-4">
+                    <div className="flex gap-4">
+                      <Button className="flex-1 h-14 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl" onClick={() => updateStatus('confirmed')}>تأكيد الدفع</Button>
+                      <Button variant="destructive" className="flex-1 h-14 font-bold rounded-xl" onClick={() => updateStatus('payment_failed', rejectReason)} disabled={!rejectReason.trim()}>رفض الدفع</Button>
+                    </div>
+                    <p className="text-sm text-gray-500 mr-1 italic">* يرجى كتابة سبب الرفض ليصل للعميل</p>
+                    <Textarea 
+                      placeholder="اكتب ملاحظة للعميل في حالة الرفض..." 
+                      value={rejectReason} 
+                      onChange={(e) => setRejectReason(e.target.value)} 
+                      className="rounded-xl bg-white border-gold/20 focus-visible:ring-gold" 
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <p className="font-bold text-gray-700">المنتجات المطلوبة:</p>
+                  <div className="border rounded-2xl overflow-hidden bg-white shadow-sm">
+                    {selectedOrder.items?.map((item: any, i: number) => (
+                      <div key={i} className="flex justify-between items-center p-4 border-b last:border-0 hover:bg-gray-50 transition-colors">
+                        <p className="font-bold text-gold">{item.price * item.quantity} EGP</p>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="font-bold">{item.name}</p>
+                            <p className="text-sm text-gray-500">الكمية: {item.quantity} × {item.price}</p>
+                          </div>
+                          <img src={item.image} className="w-16 h-16 rounded-xl object-cover border" alt={item.name} />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="p-5 bg-gray-50 flex justify-between items-center font-black text-xl border-t">
+                      <span className="text-gold">{selectedOrder.total} EGP</span>
+                      <span className="text-gray-800">الإجمالي الكلي</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

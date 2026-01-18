@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public.order_timeline (
   note text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   created_by uuid REFERENCES auth.users(id)
+  
 );
 
 -- Enable RLS on order_timeline
@@ -45,3 +46,5 @@ CREATE POLICY "Admins can view payment screenshots"
 ON storage.objects
 FOR SELECT
 USING (bucket_id = 'payment-screenshots' AND public.has_role(auth.uid(), 'admin'));
+
+
