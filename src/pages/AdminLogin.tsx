@@ -22,18 +22,20 @@ const AdminLogin = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if already logged in as admin
+    // التحقق من الجلسة الحالية عند فتح الصفحة
     const checkAdminSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const { data: roles } = await supabase
+        const { data: roleData } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', session.user.id)
-          .eq('role', 'admin')
-          .single();
+          .maybeSingle();
         
-        if (roles) {
+        // التوجيه الذكي بناءً على الرتبة المكتشفة
+        if (roleData?.role === 'owner') {
+          navigate('/admin/AdminRoles'); // مطابق لمسار App.tsx
+        } else if (roleData?.role === 'admin') {
           navigate('/admin/orders');
         }
       }
@@ -45,7 +47,6 @@ const AdminLogin = () => {
     e.preventDefault();
     setError(null);
 
-    // Validate input
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
       setError(result.error.errors[0].message);
@@ -63,20 +64,27 @@ const AdminLogin = () => {
       if (authError) throw authError;
 
       if (data.user) {
-        // Check if user has admin role
-        const { data: roles, error: roleError } = await supabase
+        // جلب رتبة المستخدم بعد تسجيل الدخول الناجح
+        const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id)
-          .eq('role', 'admin')
-          .single();
+          .maybeSingle();
 
-        if (roleError || !roles) {
+        const userRole = roleData?.role;
+
+        // منع دخول أي مستخدم ليس "أدمن" أو "أونر"
+        if (roleError || !(userRole === 'admin' || userRole === 'owner')) {
           await supabase.auth.signOut();
           throw new Error('You do not have admin access');
         }
 
-        navigate('/admin/orders');
+        // التوجيه للمكان الصحيح
+        if (userRole === 'owner') {
+          navigate('/admin/AdminRoles'); // يذهب لصفحة الأدوار
+        } else {
+          navigate('/admin/orders'); // يذهب لصفحة الطلبات
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
@@ -89,19 +97,19 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-charcoal flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-serif font-bold text-gold mb-2">capital Furniture</h1>
-          <p className="text-muted-foreground">Admin Panel</p>
+          <h1 className="text-3xl font-serif font-bold text-gold mb-2">Capital Furniture</h1>
+          <p className="text-muted-foreground">Admin Panel Access</p>
         </div>
 
-        <div className="bg-card rounded-2xl p-8 shadow-elegant">
+        <div className="bg-card rounded-2xl p-8 shadow-elegant border border-white/5">
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 mx-auto mb-6">
             <Lock className="w-8 h-8 text-gold" />
           </div>
 
-          <h2 className="text-xl font-semibold text-center mb-6">Admin Login</h2>
+          <h2 className="text-xl font-semibold text-center mb-6">Secure Login</h2>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 mb-6 rounded-lg bg-destructive/10 text-destructive text-sm">
+            <div className="flex items-center gap-2 p-3 mb-6 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -117,7 +125,7 @@ const AdminLogin = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
+                  placeholder="admin@capital.com"
                   className="pl-10"
                   disabled={isLoading}
                 />
@@ -150,18 +158,22 @@ const AdminLogin = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 gradient-gold text-charcoal font-semibold"
+              className="w-full h-12 gradient-gold text-charcoal font-semibold hover:opacity-90 transition-all active:scale-[0.98]"
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                   Signing in...
+                </span>
+              ) : 'Sign In'}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center border-t border-white/5 pt-6">
             <button
               onClick={() => navigate('/')}
               className="text-sm text-muted-foreground hover:text-gold transition-colors"
             >
-              ← Back to Store
+              ← Back to Store Website
             </button>
           </div>
         </div>

@@ -1,151 +1,146 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Package, LogOut, Menu, X, LayoutDashboard } from 'lucide-react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  ShoppingCart, 
+  Package, 
+  MessageSquare, 
+  ShieldCheck, 
+  LogOut, 
+  Menu, 
+  X,
+  ChevronRight
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.user) {
-        navigate('/admin-login');
-        return;
-      }
-
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .eq('role', 'admin')
-        .single();
-
-      if (!roles) {
-        await supabase.auth.signOut();
-        navigate('/admin-login');
-        return;
-      }
-
-      setIsLoading(false);
-    };
-
-    checkAdmin();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') {
-        navigate('/admin-login');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+  // مصفوفة القائمة الجانبية - تم تعديل المسارات لتطابق App.tsx بالظبط
+  const menuItems = [
+    { 
+      title: 'Orders', 
+      path: '/admin/orders', 
+      icon: ShoppingCart 
+    },
+    { 
+      title: 'Products', 
+      path: '/admin/products', 
+      icon: Package 
+    },
+    { 
+      title: 'Messages', 
+      path: '/admin/messages', 
+      icon: MessageSquare 
+    },
+    { 
+      title: 'Roles Management', 
+      path: '/admin/AdminRoles', // التأكد من حالة الأحرف الكبيرة
+      icon: ShieldCheck 
+    },
+  ];
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    toast.success('Logged out successfully');
     navigate('/admin-login');
   };
 
-  const navItems = [
-    { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
-    { href: '/admin/products', label: 'Products', icon: Package },
-  ];
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-charcoal flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-charcoal border-b border-border z-50 flex items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <LayoutDashboard className="w-6 h-6 text-gold" />
-          <span className="font-serif font-bold text-gold">Admin</span>
-        </div>
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="text-primary-foreground"
-        >
-          {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-
-      {/* Sidebar */}
-      <aside className={cn(
-        "fixed top-0 left-0 bottom-0 w-64 bg-charcoal border-r border-border z-40 transition-transform lg:translate-x-0",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-3">
-            <LayoutDashboard className="w-8 h-8 text-gold" />
-            <div>
-              <h1 className="font-serif font-bold text-gold">capital Furniture</h1>
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
-            </div>
+    <div className="min-h-screen bg-slate-50 flex text-slate-900">
+      {/* Sidebar - القائمة الجانبية */}
+      <aside 
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transition-transform duration-300 lg:relative lg:translate-x-0",
+          !isSidebarOpen && "-translate-x-full lg:w-20"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo - الشعار */}
+          <div className="p-6 flex items-center justify-between">
+            <span className={cn("font-serif font-bold text-xl text-amber-500", !isSidebarOpen && "lg:hidden")}>
+              Capital Admin
+            </span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white lg:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <X className="w-6 h-6" />
+            </Button>
           </div>
-        </div>
 
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setIsSidebarOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
-                  isActive
-                    ? "bg-gold text-charcoal font-semibold"
-                    : "text-muted-foreground hover:text-primary-foreground hover:bg-muted/10"
-                )}
-              >
-                <Icon className="w-5 h-5" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          {/* Navigation Links - الروابط */}
+          <nav className="flex-1 px-4 space-y-2 mt-4">
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg transition-colors group",
+                    isActive 
+                      ? "bg-amber-600 text-white" 
+                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  )}
+                >
+                  <item.icon className={cn("w-5 h-5", isActive ? "text-white" : "group-hover:text-amber-500")} />
+                  <span className={cn("font-medium", !isSidebarOpen && "lg:hidden")}>
+                    {item.title}
+                  </span>
+                  {isActive && isSidebarOpen && <ChevronRight className="w-4 h-4 ml-auto" />}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Logout
-          </Button>
+          {/* Logout Button - زر الخروج */}
+          <div className="p-4 border-t border-slate-800">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-slate-400 hover:text-red-400 hover:bg-red-400/10"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              <span className={cn(!isSidebarOpen && "lg:hidden")}>Logout</span>
+            </Button>
+          </div>
         </div>
       </aside>
 
-      {/* Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      {/* Main Content - المحتوى الرئيسي */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header - الرأس العلوي */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-6 lg:px-8">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="mr-4"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            <Menu className="w-6 h-6" />
+          </Button>
+          <div className="flex-1"></div>
+          <div className="flex items-center gap-4 text-sm text-slate-500">
+            <span>Welcome, Owner</span>
+          </div>
+        </header>
 
-      {/* Main Content */}
-      <main className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
-        {children}
+        {/* Page Content */}
+        <div className="flex-1 overflow-y-auto bg-slate-50">
+          {children}
+        </div>
       </main>
     </div>
   );
