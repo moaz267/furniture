@@ -99,7 +99,7 @@ const Hero = () => {
               {t('shopNow')}
             </Button>
             <Button
-              onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
+              onClick={() => window.open('src/assets/how to use .mp4', '_blank')}
               variant="outline"
               size="lg"
               className="border-gold/50 text-gold hover:bg-gold/10 px-10 h-14 text-lg font-semibold"
