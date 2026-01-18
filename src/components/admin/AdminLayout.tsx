@@ -133,7 +133,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </Button>
           <div className="flex-1"></div>
           <div className="flex items-center gap-4 text-sm text-slate-500">
-            <span>Welcome, Owner</span>
+            <span>Welcome</span>
           </div>
         </header>
 
